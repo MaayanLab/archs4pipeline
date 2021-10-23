@@ -3,3 +3,8 @@
 *.fastq.gz
 notebooks*
 *.ipynb
+*.json
+downloads/*
+__pycache__*
+.DS_Store
+archs4py/data/*
