@@ -27,7 +27,7 @@ def get_db_cred():
 
 def connect():
     credentials = get_db_cred()
-    return pymysql.connect(credentials["dbhost"], credentials["dbuser"], credentials["dbpass"], credentials["dbname"])
+    return pymysql.connect(host=credentials["dbhost"], user=credentials["dbuser"], password=credentials["dbpass"], database=credentials["dbname"])
 
 def get(select):
     db = connect()

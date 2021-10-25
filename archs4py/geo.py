@@ -62,3 +62,27 @@ def scan_platforms(srr, processed_gsm):
         res = parse_platform(p, srr, processed_gsm)
         platform_results.append(res)
     return pd.concat(platform_results)
+
+def fast_geo(platform, srr, processed_gsms):
+
+    os.makedirs("downloads/soft", exist_ok=True)
+    p = platform
+    p1 =  p[0:5]+"nnn"
+    p2 = p[0:9]
+    url = "ftp://ftp.ncbi.nlm.nih.gov/geo/platforms/"+p1+"/"+p2+"/soft/"+p2+"_family.soft.gz"
+    urllib.request.urlretrieve(url, "downloads/soft/"+p2+".soft.gz")
+
+    os.system("zgrep '\^SAMPLE\|!Sample_library_strategy\|!Sample_tax' downloads/soft/GPL11154.soft.gz > temp.tsv")
+    
+    f=open('temp.tsv','r')
+    lines = f.readlines()
+    f.close()
+
+    lines = [x.strip().replace("^SAMPLE = ", "") for x in lines]
+    lines = [x.replace("!Sample_library_strategy = ", "") for x in lines]
+    lines = [x.replace("!Sample_taxid_ch1 = ", "") for x in lines]
+
+    cc = chunk(lines,2)
+    df = pd.DataFrame(cc)
+    rna_samples = df[df[1] == "RNA-Seq"]
+    rna_samples

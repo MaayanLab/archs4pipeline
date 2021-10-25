@@ -1,10 +1,12 @@
 import os
 import urllib.request
 import pandas as pd
+import wget
 
 def download():
     os.makedirs("downloads", exist_ok=True)
-    urllib.request.urlretrieve("ftp://ftp.ncbi.nlm.nih.gov/sra/reports/Metadata/SRA_Accessions.tab", "downloads/SRA_Accessions.tab")
+    #urllib.request.urlretrieve("ftp://ftp.ncbi.nlm.nih.gov/sra/reports/Metadata/SRA_Accessions.tab", "downloads/SRA_Accessions.tab")
+    wget.download("ftp://ftp.ncbi.nlm.nih.gov/sra/reports/Metadata/SRA_Accessions.tab", out="downloads/SRA_Accessions.tab")
     os.system("grep ^SRR downloads/SRA_Accessions.tab | grep GSM > downloads/gsm_sra_match.tsv")
     #os.system("grep ^SRR downloads/SRA_Accessions.tab > downloads/sra_all.tsv")
 

@@ -30,7 +30,12 @@ setuptools.setup(
         'loess',
         'tqdm',
         'statsmodels',
-        'mygene'
+        'mygene',
+        'GEOparse',
+        'feather-format',
+        'sqlalchemy',
+        'wget',
+        'pymysql'
     ],
     python_requires='>=3.6',
 )
