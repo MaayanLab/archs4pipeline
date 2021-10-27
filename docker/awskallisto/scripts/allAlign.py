@@ -71,7 +71,7 @@ if jj['id'] != "empty":
                     print("do SRA dump...")
                     ffb = fb.split(".")[0]
                     command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 1 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' '+ffb)
-                    command.run(timeout=15*60, errorfile="/alignment/data/results/fasterq.txt")
+                    command.run(timeout=20*60, errorfile="/alignment/data/results/fasterq.txt")
                 if fb.endswith(".gz"):
                     urllib.request.urlretrieve(ll, "/alignment/data/uploads/"+ffb+"/"+fb)
                     os.chdir("/alignment/data/uploads")
