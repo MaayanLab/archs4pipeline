@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import datetime, time
-import subprocess
+import subprocess, threading
 import shlex
 import shutil
 import os
@@ -18,13 +18,11 @@ from time import sleep
 import time
 from datetime import datetime
 
-sleep(random.uniform(0, 5))
+sleep(random.uniform(0, 2))
 
 awsid = os.environ['AWSID']
 awskey = os.environ['AWSKEY']
 jp = "cloud18"
-
-import subprocess, threading
 
 os.makedirs("/alignment/data/uploads/", exist_ok=True)
 os.makedirs("/alignment/data/results/", exist_ok=True)
@@ -69,12 +67,13 @@ if jj['id'] != "empty":
             
             print(ll)
             
-            print("do SRA dump...")
             ffb = fb.split(".")[0]
+            print(ffb+" SRA download ...")
             os.makedirs("/alignment/data/uploads/"+ffb, exist_ok=True)
             command = Command("wget https://sra-pub-run-odp.s3.amazonaws.com/sra/"+ffb+"/"+ffb+" -O /alignment/data/uploads/"+ffb+"/"+ffb)
-            command.run(timeout=15*60, errorfile="/alignment/data/results/wget.txt")
-            if os.path.isfile("/alignment/data/uploads/"+ffb+"/"+ffb):
+            wget_status = command.run(timeout=10*60, errorfile="/alignment/data/results/wget.txt")
+            
+            if wget_status == 0:
                 command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 1 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' /alignment/data/uploads/'+ffb+'/'+ffb)
                 command.run(timeout=15*60, errorfile="/alignment/data/results/fasterq.txt")
                 os.remove("/alignment/data/uploads2/"+ffb+"/"+ffb)
@@ -100,6 +99,7 @@ if jj['id'] != "empty":
                 command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
             if len(filenames) > 1:
+                filenames = sorted(filenames)
                 command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
             
@@ -107,7 +107,7 @@ if jj['id'] != "empty":
                 print("Kallisto quantification completed")
                 upload_s3("/alignment/data/results/abundance.tsv", str(jj['id'])+"-"+str(jj['uid'])+"_kallisto.tsv", "mssm-seq-results")
                 print("Uploaded raw counts to S3")
-
+                
                 print("Uploaded raw gene counts to S3")
                 
                 numreads = 0
