@@ -80,7 +80,7 @@ if jj['id'] != "empty":
             else:
                 command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 1 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' '+ffb)
                 command.run(timeout=15*60, errorfile="/alignment/data/results/fasterq.txt")
-
+            
             filenames = next(os.walk("/alignment/data/uploads/"+ffb))[2]
             print(filenames)
             organism = str(jj['parameters']).split(":")[1]
@@ -96,19 +96,27 @@ if jj['id'] != "empty":
             
             run_status = 0
             if len(filenames) == 1:
-                command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0])
+                command = Command("/alignment/tools/kallisto/kallisto quant -t 2 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
             if len(filenames) > 1:
                 filenames = sorted(filenames)
-                command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1])
+                command = Command("/alignment/tools/kallisto/kallisto quant -t 2 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
+            
+            file1 = open("/alignment/data/results/runinfo.txt", "r")  # append mode
+            runinfo = file1.read()
+            file1.close()
+            
+            file1 = open("/alignment/data/log.txt", "a")  # append mode
+            file1.write(ffb+" - "+str(run_status)+"\n")
+            file1.write(runinfo)
+            file1.write("---------------------------------------\n")
+            file1.close()
             
             if run_status == 0: #alignment success
                 print("Kallisto quantification completed")
                 upload_s3("/alignment/data/results/abundance.tsv", str(jj['id'])+"-"+str(jj['uid'])+"_kallisto.tsv", "mssm-seq-results")
                 print("Uploaded raw counts to S3")
-                
-                print("Uploaded raw gene counts to S3")
                 
                 numreads = 0
                 numaligned = 0
