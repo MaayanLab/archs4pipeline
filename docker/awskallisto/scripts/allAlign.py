@@ -70,7 +70,8 @@ if jj['id'] != "empty":
                 if fb.endswith(".sra"):
                     print("do SRA dump...")
                     ffb = fb.split(".")[0]
-                    command = Command("wget https://sra-pub-run-odp.s3.amazonaws.com/sra/"+ffb+"/"+ffb+" /alignment/data/uploads/"+ffb+"/"+ffb)
+                    os.mkdir("/alignment/data/uploads/"+ffb)
+                    command = Command("wget https://sra-pub-run-odp.s3.amazonaws.com/sra/"+ffb+"/"+ffb+" -O /alignment/data/uploads/"+ffb+"/"+ffb)
                     command.run(timeout=15*60, errorfile="/alignment/data/results/wget.txt")
                     if os.path.isfile("/alignment/data/uploads/"+ffb+"/"+ffb):
                         command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 2 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' /alignment/data/uploads/'+ffb+'/'+ffb)
