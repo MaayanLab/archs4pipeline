@@ -70,8 +70,14 @@ if jj['id'] != "empty":
                 if fb.endswith(".sra"):
                     print("do SRA dump...")
                     ffb = fb.split(".")[0]
-                    command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 1 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' '+ffb)
-                    command.run(timeout=20*60, errorfile="/alignment/data/results/fasterq.txt")
+                    command = Command("wget https://sra-pub-run-odp.s3.amazonaws.com/sra/"+ffb+"/"+ffb+" /alignment/data/uploads/"+ffb+"/"+ffb)
+                    command.run(timeout=15*60, errorfile="/alignment/data/results/wget.txt")
+                    if os.path.isfile("/alignment/data/uploads/"+ffb+"/"+ffb):
+                        command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 2 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' /alignment/data/uploads/'+ffb+'/'+ffb)
+                        command.run(timeout=20*60, errorfile="/alignment/data/results/fasterq.txt")
+                    else:
+                        command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 2 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' '+ffb)
+                        command.run(timeout=20*60, errorfile="/alignment/data/results/fasterq.txt")
                 if fb.endswith(".gz"):
                     urllib.request.urlretrieve(ll, "/alignment/data/uploads/"+ffb+"/"+fb)
                     os.chdir("/alignment/data/uploads")
@@ -95,12 +101,12 @@ if jj['id'] != "empty":
             if len(filenames) == 1:
                 #with open("/alignment/data/results/runinfo.txt", "w") as f:
                 #    subprocess.call(shlex.split("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]), stderr=f)
-                command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0])
+                command = Command("/alignment/tools/kallisto/kallisto quant -t 2 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
             if len(filenames) > 1:
                 #with open("/alignment/data/results/runinfo.txt", "w") as f:
                 #subprocess.call(shlex.split("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1]), stderr=f)
-                command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1])
+                command = Command("/alignment/tools/kallisto/kallisto quant -t 2 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
             
             if run_status == 0: #alignment success
