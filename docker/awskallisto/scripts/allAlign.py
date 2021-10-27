@@ -28,6 +28,7 @@ import subprocess, threading
 
 os.makedirs("/alignment/data/uploads/", exist_ok=True)
 os.makedirs("/alignment/data/results/", exist_ok=True)
+os.makedirs("/alignment/data/index/", exist_ok=True)
 
 class Command(object):
     def __init__(self, cmd):
@@ -74,10 +75,11 @@ if jj['id'] != "empty":
             command = Command("wget https://sra-pub-run-odp.s3.amazonaws.com/sra/"+ffb+"/"+ffb+" -O /alignment/data/uploads/"+ffb+"/"+ffb)
             command.run(timeout=15*60, errorfile="/alignment/data/results/wget.txt")
             if os.path.isfile("/alignment/data/uploads/"+ffb+"/"+ffb):
-                command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 2 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' /alignment/data/uploads/'+ffb+'/'+ffb)
+                command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 1 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' /alignment/data/uploads/'+ffb+'/'+ffb)
                 command.run(timeout=15*60, errorfile="/alignment/data/results/fasterq.txt")
+                os.remove("/alignment/data/uploads2/"+ffb+"/"+ffb)
             else:
-                command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 2 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' '+ffb)
+                command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 1 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' '+ffb)
                 command.run(timeout=15*60, errorfile="/alignment/data/results/fasterq.txt")
 
             filenames = next(os.walk("/alignment/data/uploads/"+ffb))[2]
@@ -95,10 +97,10 @@ if jj['id'] != "empty":
             
             run_status = 0
             if len(filenames) == 1:
-                command = Command("/alignment/tools/kallisto/kallisto quant -t 2 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0])
+                command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
             if len(filenames) > 1:
-                command = Command("/alignment/tools/kallisto/kallisto quant -t 2 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1])
+                command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
             
             if run_status == 0: #alignment success
