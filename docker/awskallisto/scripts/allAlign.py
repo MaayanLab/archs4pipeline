@@ -26,6 +26,9 @@ jp = "cloud18"
 
 import subprocess, threading
 
+os.makedirs("/alignment/data/uploads/", exist_ok=True)
+os.makedirs("/alignment/data/results/", exist_ok=True)
+
 class Command(object):
     def __init__(self, cmd):
         self.cmd = cmd
@@ -58,33 +61,25 @@ jj = r.json()
 
 if jj['id'] != "empty":
     if str(jj['type']) == "sequencing":
-        links = jj['datalinks'].split(";")
-        
         try:
-            for ll in links:
-                ll = str(ll)
-                fb = basename(ll)
-                
-                print(ll)
-                
-                if fb.endswith(".sra"):
-                    print("do SRA dump...")
-                    ffb = fb.split(".")[0]
-                    os.mkdir("/alignment/data/uploads/"+ffb)
-                    command = Command("wget https://sra-pub-run-odp.s3.amazonaws.com/sra/"+ffb+"/"+ffb+" -O /alignment/data/uploads/"+ffb+"/"+ffb)
-                    command.run(timeout=15*60, errorfile="/alignment/data/results/wget.txt")
-                    if os.path.isfile("/alignment/data/uploads/"+ffb+"/"+ffb):
-                        command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 2 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' /alignment/data/uploads/'+ffb+'/'+ffb)
-                        command.run(timeout=20*60, errorfile="/alignment/data/results/fasterq.txt")
-                    else:
-                        command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 2 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' '+ffb)
-                        command.run(timeout=20*60, errorfile="/alignment/data/results/fasterq.txt")
-                if fb.endswith(".gz"):
-                    urllib.request.urlretrieve(ll, "/alignment/data/uploads/"+ffb+"/"+fb)
-                    os.chdir("/alignment/data/uploads")
-                    subprocess.call(shlex.split("gunzip "+fb))
-                    os.chdir("/alignment")
+            ll = jj['datalinks']
+            ll = str(ll)
+            fb = basename(ll)
             
+            print(ll)
+            
+            print("do SRA dump...")
+            ffb = fb.split(".")[0]
+            os.makedirs("/alignment/data/uploads/"+ffb, exist_ok=True)
+            command = Command("wget https://sra-pub-run-odp.s3.amazonaws.com/sra/"+ffb+"/"+ffb+" -O /alignment/data/uploads/"+ffb+"/"+ffb)
+            command.run(timeout=15*60, errorfile="/alignment/data/results/wget.txt")
+            if os.path.isfile("/alignment/data/uploads/"+ffb+"/"+ffb):
+                command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 2 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' /alignment/data/uploads/'+ffb+'/'+ffb)
+                command.run(timeout=15*60, errorfile="/alignment/data/results/fasterq.txt")
+            else:
+                command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 2 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' '+ffb)
+                command.run(timeout=15*60, errorfile="/alignment/data/results/fasterq.txt")
+
             filenames = next(os.walk("/alignment/data/uploads/"+ffb))[2]
             print(filenames)
             organism = str(jj['parameters']).split(":")[1]
@@ -100,13 +95,9 @@ if jj['id'] != "empty":
             
             run_status = 0
             if len(filenames) == 1:
-                #with open("/alignment/data/results/runinfo.txt", "w") as f:
-                #    subprocess.call(shlex.split("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]), stderr=f)
                 command = Command("/alignment/tools/kallisto/kallisto quant -t 2 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
             if len(filenames) > 1:
-                #with open("/alignment/data/results/runinfo.txt", "w") as f:
-                #subprocess.call(shlex.split("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1]), stderr=f)
                 command = Command("/alignment/tools/kallisto/kallisto quant -t 2 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
             
@@ -115,16 +106,6 @@ if jj['id'] != "empty":
                 upload_s3("/alignment/data/results/abundance.tsv", str(jj['id'])+"-"+str(jj['uid'])+"_kallisto.tsv", "mssm-seq-results")
                 print("Uploaded raw counts to S3")
 
-                #mapping = "/alignment/data/mapping/"+organism+"_mapping.rda"
-
-                #if not os.path.isfile(mapping):
-                #    print("Load gene mapping information: "+organism)
-                #    mappinglink = "https://s3.amazonaws.com/mssm-seq-genemapping/"+organism+"_mapping.rda"
-                #    urllib.request.urlretrieve(mappinglink, mapping)
-                
-                #subprocess.call(shlex.split("Rscript --vanilla scripts/genelevel.r "+mapping))
-                #upload_s3("/alignment/data/results/gene_abundance.tsv", str(jj['id'])+"-"+str(jj['uid'])+"_kallisto_gene.tsv", "mssm-seq-generesults")
-                
                 print("Uploaded raw gene counts to S3")
                 
                 numreads = 0
