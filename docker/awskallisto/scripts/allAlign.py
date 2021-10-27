@@ -70,8 +70,8 @@ if jj['id'] != "empty":
                 if fb.endswith(".sra"):
                     print("do SRA dump...")
                     ffb = fb.split(".")[0]
-                    command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 2 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' '+ffb)
-                    command.run(timeout=30*60, errorfile="/alignment/data/results/fasterq.txt")
+                    command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 1 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' '+ffb)
+                    command.run(timeout=15*60, errorfile="/alignment/data/results/fasterq.txt")
                 if fb.endswith(".gz"):
                     urllib.request.urlretrieve(ll, "/alignment/data/uploads/"+ffb+"/"+fb)
                     os.chdir("/alignment/data/uploads")
@@ -108,15 +108,15 @@ if jj['id'] != "empty":
                 upload_s3("/alignment/data/results/abundance.tsv", str(jj['id'])+"-"+str(jj['uid'])+"_kallisto.tsv", "mssm-seq-results")
                 print("Uploaded raw counts to S3")
 
-                mapping = "/alignment/data/mapping/"+organism+"_mapping.rda"
+                #mapping = "/alignment/data/mapping/"+organism+"_mapping.rda"
 
-                if not os.path.isfile(mapping):
-                    print("Load gene mapping information: "+organism)
-                    mappinglink = "https://s3.amazonaws.com/mssm-seq-genemapping/"+organism+"_mapping.rda"
-                    urllib.request.urlretrieve(mappinglink, mapping)
+                #if not os.path.isfile(mapping):
+                #    print("Load gene mapping information: "+organism)
+                #    mappinglink = "https://s3.amazonaws.com/mssm-seq-genemapping/"+organism+"_mapping.rda"
+                #    urllib.request.urlretrieve(mappinglink, mapping)
                 
-                subprocess.call(shlex.split("Rscript --vanilla scripts/genelevel.r "+mapping))
-                upload_s3("/alignment/data/results/gene_abundance.tsv", str(jj['id'])+"-"+str(jj['uid'])+"_kallisto_gene.tsv", "mssm-seq-generesults")
+                #subprocess.call(shlex.split("Rscript --vanilla scripts/genelevel.r "+mapping))
+                #upload_s3("/alignment/data/results/gene_abundance.tsv", str(jj['id'])+"-"+str(jj['uid'])+"_kallisto_gene.tsv", "mssm-seq-generesults")
                 
                 print("Uploaded raw gene counts to S3")
                 
@@ -155,13 +155,13 @@ if jj['id'] != "empty":
                     'pass': jp
                 }
                 r = requests.post('https://maayanlab.cloud/cloudalignment/finishjobarchs4', json=sample)
-        except Exception:
+        except Exception as e:
             sample = {
                 'id': str(jj['id']),
                 'uid': str(jj['uid']),
-                'nreads': -1,
-                'naligned': -1,
-                'nlength': -1,
+                'nreads': -2,
+                'naligned': -2,
+                'nlength': -2,
                 'pass': jp
             }
             r = requests.post('https://maayanlab.cloud/cloudalignment/finishjobarchs4', json=sample)
