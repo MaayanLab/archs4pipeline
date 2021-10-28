@@ -101,11 +101,11 @@ if jj['id'] != "empty":
             
             run_status = 0
             if len(filenames) == 1:
-                command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0])
+                command = Command("/alignment/tools/kallisto/kallisto quant -t 2 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
             if len(filenames) > 1:
                 filenames = sorted(filenames)
-                command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1])
+                command = Command("/alignment/tools/kallisto/kallisto quant -t 2 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
             
             file1 = open("/alignment/data/results/runinfo.txt", "r")  # append mode
