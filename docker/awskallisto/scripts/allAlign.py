@@ -74,10 +74,10 @@ if jj['id'] != "empty":
             wget_status = command.run(timeout=10*60, errorfile="/alignment/data/results/wget.txt")
             
             if wget_status == 0:
-                command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 1 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' /alignment/data/uploads/'+ffb+'/'+ffb)
+                command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G -e 1 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' /alignment/data/uploads/'+ffb+'/'+ffb)
                 command.run(timeout=15*60, errorfile="/alignment/data/results/fasterq.txt")
             else:
-                command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 1 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' '+ffb)
+                command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G -e 1 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' '+ffb)
                 command.run(timeout=15*60, errorfile="/alignment/data/results/fasterq.txt")
             
             if os.path.exists("/alignment/data/uploads/"+ffb+"/"+ffb):
@@ -101,12 +101,18 @@ if jj['id'] != "empty":
             
             run_status = 0
             if len(filenames) == 1:
-                command = Command("/alignment/tools/kallisto/kallisto quant -t 2 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0])
+                command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
+                if run_status != 0: # second chance
+                    command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" --single -l 200 -s 20 -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0])
+                    run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
             if len(filenames) > 1:
                 filenames = sorted(filenames)
-                command = Command("/alignment/tools/kallisto/kallisto quant -t 2 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1])
+                command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1])
                 run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
+                if run_status != 0: # second chance
+                    command = Command("/alignment/tools/kallisto/kallisto quant -t 1 -i "+index+" -o /alignment/data/results /alignment/data/uploads/"+ffb+"/"+filenames[0]+" /alignment/data/uploads/"+ffb+"/"+filenames[1])
+                    run_status = command.run(timeout=60*60, errorfile="/alignment/data/results/runinfo.txt")
             
             file1 = open("/alignment/data/results/runinfo.txt", "r")  # append mode
             runinfo = file1.read()

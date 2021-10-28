@@ -72,7 +72,7 @@ def fast_geo(platform, srr, processed_gsms):
     url = "ftp://ftp.ncbi.nlm.nih.gov/geo/platforms/"+p1+"/"+p2+"/soft/"+p2+"_family.soft.gz"
     urllib.request.urlretrieve(url, "downloads/soft/"+p2+".soft.gz")
 
-    os.system("zgrep '\^SAMPLE\|!Sample_library_strategy\|!Sample_tax' downloads/soft/GPL11154.soft.gz > temp.tsv")
+    os.system("zgrep '\^SAMPLE\|!Sample_library_strategy' downloads/soft/"+p2+".soft.gz > temp.tsv")
     
     f=open('temp.tsv','r')
     lines = f.readlines()
@@ -84,5 +84,5 @@ def fast_geo(platform, srr, processed_gsms):
 
     cc = chunk(lines,2)
     df = pd.DataFrame(cc)
-    rna_samples = df[df[1] == "RNA-Seq"]
-    rna_samples
+    rna_samples = df[df[1] == "RNA-Seq"][0]
+    rna_samples.intersection(srr)

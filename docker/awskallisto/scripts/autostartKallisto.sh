@@ -6,5 +6,6 @@ while true
 do
     rm -R /alignment/data/uploads/*
     rm -R /alignment/data/results/*
+    rm -R /alignment/fasterq.tmp*
     python3 scripts/allAlign.py
 done
