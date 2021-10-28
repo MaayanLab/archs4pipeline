@@ -76,10 +76,15 @@ if jj['id'] != "empty":
             if wget_status == 0:
                 command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 1 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' /alignment/data/uploads/'+ffb+'/'+ffb)
                 command.run(timeout=15*60, errorfile="/alignment/data/results/fasterq.txt")
-                os.remove("/alignment/data/uploads2/"+ffb+"/"+ffb)
             else:
                 command = Command('tools/sratools/fasterq-dump_2.11.3 -f --mem 2G --threads 1 --split-3 --skip-technical -O /alignment/data/uploads/'+ffb+' '+ffb)
                 command.run(timeout=15*60, errorfile="/alignment/data/results/fasterq.txt")
+            
+            if os.path.exists("/alignment/data/uploads/"+ffb+"/"+ffb):
+                f = open("/alignment/data/log.txt", "a")  # append mode
+                f.write(ffb+" del: "+"/alignment/data/uploads/"+ffb+"/"+ffb+"\n")
+                f.close()
+                os.remove("/alignment/data/uploads/"+ffb+"/"+ffb)
             
             filenames = next(os.walk("/alignment/data/uploads/"+ffb))[2]
             print(filenames)
