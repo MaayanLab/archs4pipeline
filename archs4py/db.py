@@ -49,9 +49,6 @@ def insert(df, table):
 def processed_gsms():
     return get("SELECT DISTINCT(gsm) FROM samplemapping")
 
-def waiting_jobs():
-    return get("SELECT COUNT(*) FROM sequencing WHERE status='waiting'")
-
 def get_max_id():
     return get("SELECT MAX(listid) FROM samplemapping")[0][0]
 
